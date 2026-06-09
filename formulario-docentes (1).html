@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro Docente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marope:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pink:    #F26DF9;
+    --lime:    #C8D29C;
+    --blue:    #5059BC;
+    --navy:    #063565;
+    --dark:    #00203A;
+    --white:   #ffffff;
+    --surface: rgba(255,255,255,0.07);
+    --border:  rgba(80,89,188,0.45);
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Marope', Georgia, serif;
+    background: linear-gradient(160deg, var(--dark) 0%, var(--navy) 100%);
+    min-height: 100vh;
+    padding: 0;
+    color: var(--white);
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--dark);
+    border-bottom: 3px solid var(--pink);
+    padding: 1.5rem 1.25rem 1.25rem;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0;
+    width: 50px; height: 3px;
+    background: var(--lime);
+  }
+  .escudo {
+    width: 44px; height: 44px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.75rem;
+    border: 2px solid var(--pink);
+    font-size: 20px;
+  }
+  header h1 {
+    font-size: clamp(15px, 4vw, 19px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--white);
+    line-height: 1.3;
+  }
+  header p {
+    font-size: 11px;
+    color: var(--lime);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ── Main ── */
+  main { padding: 0 0 3rem; }
+
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lime);
+    padding: 1.25rem 1.25rem 0.6rem;
+    border-bottom: 0.5px solid rgba(200,210,156,0.2);
+    margin-bottom: 1rem;
+  }
+
+  .form-body { padding: 0 1.25rem; }
+
+  .field { margin-bottom: 1rem; }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--lime);
+    margin-bottom: 5px;
+  }
+  .field label .req { color: var(--pink); margin-left: 2px; }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 11px 14px;
+    font-family: 'Marope', Georgia, serif;
+    font-size: 15px;
+    color: var(--white);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder { color: rgba(255,255,255,0.28); }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--pink);
+    background: rgba(242,109,249,0.08);
+  }
+  .field select option { background: #063565; color: #fff; }
+  .field textarea { resize: vertical; min-height: 72px; }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--lime);
+    pointer-events: none;
+    font-size: 14px;
+  }
+
+  .divider {
+    height: 0.5px;
+    background: linear-gradient(90deg, transparent, rgba(200,210,156,0.25), transparent);
+    margin: 0.25rem 1.25rem 0;
+  }
+
+  /* ── Buttons ── */
+  .btn-area { padding: 1.25rem 1.25rem 0; display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .btn {
+    width: 100%;
+    padding: 13px 20px;
+    border-radius: 7px;
+    font-family: 'Marope', Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { opacity: 0.88; }
+
+  .btn-outline-lime { background: transparent; color: var(--lime); border: 1px solid var(--lime); }
+  .btn-outline-pink { background: transparent; color: var(--pink); border: 1px solid var(--pink); }
+
+  /* ── Estado ── */
+  .status-box {
+    margin: 1.25rem 1.25rem 0;
+    padding: 12px 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-box.ok    { background: rgba(80,89,188,0.25); border: 1px solid var(--blue); color: #9ba6f0; }
+  .status-box.error { background: rgba(200,0,0,0.2);    border: 1px solid #a33; color: #f8a8a8; }
+  .status-box.show  { display: flex; }
+
+  /* ── Contador ── */
+  .counter-bar {
+    margin: 1.25rem 1.25rem 0;
+    background: rgba(0,0,0,0.2);
+    border: 0.5px solid rgba(200,210,156,0.2);
+    border-radius: 7px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .counter-bar span { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; text-transform: uppercase; }
+  .counter-bar strong { font-size: 20px; color: var(--lime); }
+
+  /* ── Loading spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 2rem 1.25rem 1rem;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="escudo">🏫</div>
+  <h1>Registro de Personal Docente</h1>
+  <p>Sistema de carga institucional · Ciclo 2026</p>
+</header>
+
+<main>
+  <!-- ── Sección 1: Datos personales ── -->
+  <div class="section-title">📋 Datos personales</div>
+  <div class="form-body">
+
+    <div class="field">
+      <label>Apellido <span class="req">*</span></label>
+      <input type="text" id="apellido" placeholder="Ej: González" autocomplete="family-name">
+    </div>
+
+    <div class="field">
+      <label>Nombre/s <span class="req">*</span></label>
+      <input type="text" id="nombre" placeholder="Ej: María Laura" autocomplete="given-name">
+    </div>
+
+    <div class="field">
+      <label>D.N.I. <span class="req">*</span></label>
+      <input type="text" id="dni" placeholder="Ej: 28456789" inputmode="numeric" maxlength="12">
+    </div>
+
+    <div class="field">
+      <label>Correo electrónico</label>
+      <input type="email" id="email" placeholder="docente@escuela.edu.ar" inputmode="email" autocomplete="email">
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── Sección 2: Situación laboral ── -->
+  <div class="section-title">💼 Situación laboral</div>
+  <div class="form-body">
+
+    <div class="field">
+      <label>Situación de revista <span class="req">*</span></label>
+      <div class="select-wrap">
+        <select id="situacion">
+          <option value="" disabled selected>Seleccionar…</option>
+          <option>Titular</option>
+          <option>Interino/a</option>
+          <option>Provisional</option>
+          <option>Suplente</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Cargo que ocupa <span class="req">*</span></label>
+      <div class="select-wrap">
+        <select id="cargo">
+          <option value="" disabled selected>Seleccionar…</option>
+          <option>Maestro/a de Grado</option>
+          <option>Profesor/a</option>
+          <option>Preceptor/a</option>
+          <option>Directivo/a</option>
+          <option>Vicedirector/a</option>
+          <option>Secretario/a</option>
+          <option>Gabinete Psicopedagógico</option>
+          <option>Maestro/a Especial</option>
+          <option>Otro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Área / Materia</label>
+      <input type="text" id="area" placeholder="Ej: Matemática, Ed. Física…">
+    </div>
+
+    <div class="field">
+      <label>Año / Ciclo lectivo</label>
+      <input type="text" id="anio" placeholder="2026" inputmode="numeric" maxlength="4">
+    </div>
+
+    <div class="field">
+      <label>Observaciones</label>
+      <textarea id="obs" placeholder="Información adicional relevante…"></textarea>
+    </div>
+
+  </div>
+
+  <!-- ── Botones ── -->
+  <div class="btn-area">
+    <button class="btn btn-primary" id="btn-enviar" onclick="enviarFormulario()">
+      <span id="btn-texto">✔ Enviar registro</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+    <button class="btn btn-outline-lime" onclick="limpiar()">↺ Limpiar formulario</button>
+  </div>
+
+  <!-- ── Mensaje de estado ── -->
+  <div class="status-box" id="status"></div>
+
+  <!-- ── Contador de envíos ── -->
+  <div class="counter-bar" id="counter-bar" style="display:none;">
+    <span>Registros enviados esta sesión</span>
+    <strong id="count">0</strong>
+  </div>
+
+</main>
+
+<footer>
+  Sistema institucional de registro docente
+</footer>
+
+<script>
+  // ══════════════════════════════════════════════════════════════
+  //  ▶ REEMPLAZÁ ESTA URL CON LA QUE TE DIO GOOGLE APPS SCRIPT
+  // ══════════════════════════════════════════════════════════════
+   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycIavbnALk-fHkSrkm2wYONC6ke_5ZxKgFYSWfdQRofEUkUJbkNiOL5qHea4fZ32Vhww/exec";
+  // ══════════════════════════════════════════════════════════════
+
+  let enviados = 0;
+
+  function val(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function mostrarStatus(msg, tipo) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = 'status-box show ' + tipo;
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  async function enviarFormulario() {
+    const apellido  = val('apellido');
+    const nombre    = val('nombre');
+    const dni       = val('dni');
+    const situacion = val('situacion');
+    const cargo     = val('cargo');
+
+    if (!apellido || !nombre || !dni || !situacion || !cargo) {
+      mostrarStatus('⚠ Completá los campos obligatorios marcados con *.', 'error');
+      return;
+    }
+
+    const datos = {
+      apellido,
+      nombre,
+      dni,
+      email:     val('email'),
+      situacion,
+      cargo,
+      area:      val('area'),
+      anio:      val('anio') || new Date().getFullYear(),
+      obs:       val('obs')
+    };
+
+    // Estado de carga
+    document.getElementById('btn-texto').style.display = 'none';
+    document.getElementById('spinner').style.display   = 'block';
+    document.getElementById('btn-enviar').disabled = true;
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method:  'POST',
+        mode:    'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(datos)
+      });
+
+      // Con no-cors no podemos leer la respuesta, pero si no lanzó error el envío fue exitoso
+      enviados++;
+      document.getElementById('count').textContent = enviados;
+      document.getElementById('counter-bar').style.display = 'flex';
+
+      mostrarStatus('✔ Datos enviados correctamente. ¡Gracias, ' + nombre + '!', 'ok');
+      limpiar();
+
+    } catch (err) {
+      mostrarStatus('✖ Error al enviar. Verificá tu conexión e intentá nuevamente.', 'error');
+    } finally {
+      document.getElementById('btn-texto').style.display = 'inline';
+      document.getElementById('spinner').style.display   = 'none';
+      document.getElementById('btn-enviar').disabled = false;
+    }
+  }
+
+  function limpiar() {
+    ['apellido','nombre','dni','email','area','anio','obs'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('situacion').value = '';
+    document.getElementById('cargo').value     = '';
+  }
+</script>
+
+</body>
+</html>
