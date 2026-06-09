@@ -6,6 +6,7 @@
 <title>Registro Docente</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Marope:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   /* ── Reset ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -314,6 +315,9 @@
       <span id="btn-texto">✔ Enviar registro</span>
       <div class="spinner" id="spinner"></div>
     </button>
+    <button class="btn btn-outline-lime" id="btn-constancia" onclick="descargarConstancia()" style="display:none;">
+      📄 Descargar constancia PDF
+    </button>
     <button class="btn btn-outline-lime" onclick="limpiar()">↺ Limpiar formulario</button>
   </div>
 
@@ -336,10 +340,11 @@
   // ══════════════════════════════════════════════════════════════
   //  ▶ REEMPLAZÁ ESTA URL CON LA QUE TE DIO GOOGLE APPS SCRIPT
   // ══════════════════════════════════════════════════════════════
-   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycIavbnALk-fHkSrkm2wYONC6ke_5ZxKgFYSWfdQRofEUkUJbkNiOL5qHea4fZ32Vhww/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycIavbnALk-fHkSrkm2wYONC6ke_5ZxKgFYSWfdQRofEUkUJbkNiOL5qHea4fZ32Vhww/exec";
   // ══════════════════════════════════════════════════════════════
 
   let enviados = 0;
+  let ultimoDato = null; // guarda los datos del último envío para el PDF
 
   function val(id) {
     return document.getElementById(id).value.trim();
@@ -350,7 +355,7 @@
     el.textContent = msg;
     el.className = 'status-box show ' + tipo;
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    setTimeout(() => el.classList.remove('show'), 5000);
+    setTimeout(() => el.classList.remove('show'), 8000);
   }
 
   async function enviarFormulario() {
@@ -377,7 +382,6 @@
       obs:       val('obs')
     };
 
-    // Estado de carga
     document.getElementById('btn-texto').style.display = 'none';
     document.getElementById('spinner').style.display   = 'block';
     document.getElementById('btn-enviar').disabled = true;
@@ -390,12 +394,13 @@
         body:    JSON.stringify(datos)
       });
 
-      // Con no-cors no podemos leer la respuesta, pero si no lanzó error el envío fue exitoso
       enviados++;
+      ultimoDato = datos;
       document.getElementById('count').textContent = enviados;
       document.getElementById('counter-bar').style.display = 'flex';
+      document.getElementById('btn-constancia').style.display = 'flex';
 
-      mostrarStatus('✔ Datos enviados correctamente. ¡Gracias, ' + nombre + '!', 'ok');
+      mostrarStatus('✔ Datos enviados correctamente. Podés descargar tu constancia.', 'ok');
       limpiar();
 
     } catch (err) {
@@ -407,6 +412,199 @@
     }
   }
 
+  // ── Generación del PDF de constancia ──────────────────────────
+  function descargarConstancia() {
+    if (!ultimoDato) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const W = 210, H = 297;
+    const mg = 20; // margen izquierdo/derecho
+
+    // ── Fondo blanco ──
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, W, H, 'F');
+
+    // ── Línea decorativa superior ──
+    doc.setDrawColor(6, 53, 101);
+    doc.setLineWidth(1.2);
+    doc.line(mg, 10, W - mg, 10);
+    doc.setDrawColor(242, 109, 249);
+    doc.setLineWidth(0.5);
+    doc.line(mg, 12, W - mg, 12);
+
+    // ── Encabezado institucional ──
+    // Bloque izquierdo
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(6, 53, 101);
+    doc.text('Gobierno del', mg, 22);
+    doc.setFontSize(20);
+    doc.text('CHACO', mg, 30);
+
+    // Separador vertical
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineWidth(0.3);
+    doc.line(65, 16, 65, 38);
+
+    // Bloque Ministerio
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Ministerio', 68, 20);
+    doc.text('de Educación, Cultura', 68, 25);
+    doc.text('Ciencia y Tecnología', 68, 30);
+
+    doc.line(108, 16, 108, 38);
+
+    // Bloque Dirección General
+    doc.text('Dirección', 111, 20);
+    doc.text('General de', 111, 25);
+    doc.text('Gestión Educativa', 111, 30);
+
+    doc.line(148, 16, 148, 38);
+
+    // Bloque Dirección Regional
+    doc.text('Dirección Regional', 151, 20);
+    doc.text('Educativa II', 151, 25);
+
+    // ── Leyenda del año ──
+    doc.setFontSize(7.5);
+    doc.setTextColor(60, 60, 60);
+    const leyenda = '"2026 - Año del 100° Aniversario de la sanción de la Ley de Derechos Civiles de la Mujer - ley nacional 11.357"';
+    doc.text(leyenda, W / 2, 43, { align: 'center' });
+
+    // ── Línea separadora ──
+    doc.setDrawColor(6, 53, 101);
+    doc.setLineWidth(0.4);
+    doc.line(mg, 47, W - mg, 47);
+
+    // ── Título ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('CONSTANCIA DE PARTICIPACIÓN', W / 2, 60, { align: 'center' });
+    // Subrayado manual
+    const tW = doc.getTextWidth('CONSTANCIA DE PARTICIPACIÓN');
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.4);
+    doc.line(W / 2 - tW / 2, 62, W / 2 + tW / 2, 62);
+
+    // ── Cuerpo del texto ──
+    const nombreCompleto = ultimoDato.apellido.toUpperCase() + ', ' + ultimoDato.nombre;
+    const fechaHoy = new Date();
+    const dia  = fechaHoy.getDate();
+    const mes  = fechaHoy.toLocaleString('es-AR', { month: 'long' });
+    const anio = fechaHoy.getFullYear();
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(30, 30, 30);
+
+    const lineH = 8;
+    let y = 78;
+    const textW = W - mg * 2;
+
+    // Párrafo 1 — con partes en negrita intercaladas
+    const parrafo1 = [
+      { text: '\tLa Dirección Regional Educativa II, hace ', bold: false },
+      { text: 'CONSTAR', bold: true },
+      { text: ' que el/la ', bold: false },
+      { text: 'Prof. ' + nombreCompleto, bold: true },
+      { text: ',', bold: false },
+    ];
+    y = renderParrafo(doc, parrafo1, mg, y, textW, lineH);
+
+    const parrafo2 = [
+      { text: 'DNI N° ', bold: true },
+      { text: ultimoDato.dni, bold: true },
+      { text: ', ha participado del ', bold: false },
+      { text: '"Encuentro Presencial Aprendo Leyendo 2026, para docentes de primer ciclo"', bold: true, italic: true },
+      { text: ', el día 10 de junio 2026, desde las 14:00 hs hasta las 16:30 hs, en la localidad de ', bold: false },
+      { text: 'Tres Isletas', bold: true },
+    ];
+    y = renderParrafo(doc, parrafo2, mg, y + 2, textW, lineH);
+
+    // Párrafo 2
+    y += lineH;
+    const parrafo3 = [
+      { text: '\tSe extiende la presente, en la localidad de Juan José Castelli a los ' + dia + ' días del mes de ' + mes + ' de ' + anio + ', para ser presentado ante las autoridades que lo requieran.', bold: false },
+    ];
+    y = renderParrafo(doc, parrafo3, mg, y + 2, textW, lineH);
+
+    // ── Cargo del docente (dato extra) ──
+    y += lineH * 1.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    doc.text('Cargo: ' + ultimoDato.cargo + '   |   Situación de revista: ' + ultimoDato.situacion, W / 2, y, { align: 'center' });
+
+    // ── Área de firmas ──
+    const firmaY = H - 60;
+
+    // Sello (círculo simulado)
+    doc.setDrawColor(80, 80, 160);
+    doc.setLineWidth(0.6);
+    doc.circle(W / 2 - 28, firmaY + 10, 18);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(5.5);
+    doc.setTextColor(80, 80, 160);
+    doc.text('MINISTERIO DE EDUC. CULTURA CIENCIA Y TECNOLOGÍA', W / 2 - 28, firmaY + 5, { align: 'center', maxWidth: 28 });
+    doc.text('DIRECCIÓN REGIONAL EDUCATIVA EDUCATIVA II', W / 2 - 28, firmaY + 14, { align: 'center', maxWidth: 28 });
+    doc.setFontSize(7);
+    doc.text('J.J. CASTELLI', W / 2 - 28, firmaY + 20, { align: 'center' });
+    doc.text('PROV. DEL CHACO', W / 2 - 28, firmaY + 24, { align: 'center' });
+
+    // Firma
+    doc.setDrawColor(80, 80, 160);
+    doc.setLineWidth(0.4);
+    doc.line(W / 2 + 10, firmaY + 5, W / 2 + 50, firmaY + 5);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Prof. Humberto Molina', W / 2 + 30, firmaY + 11, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Director Regional DRE II', W / 2 + 30, firmaY + 17, { align: 'center' });
+    doc.text('DNI N° 16.375.523', W / 2 + 30, firmaY + 23, { align: 'center' });
+
+    // ── Línea decorativa inferior ──
+    doc.setDrawColor(242, 109, 249);
+    doc.setLineWidth(0.5);
+    doc.line(mg, H - 12, W - mg, H - 12);
+    doc.setDrawColor(6, 53, 101);
+    doc.setLineWidth(1.2);
+    doc.line(mg, H - 10, W - mg, H - 10);
+
+    doc.save('Constancia_' + ultimoDato.apellido + '_' + ultimoDato.nombre + '.pdf');
+  }
+
+  // Función auxiliar: renderiza un párrafo con fragmentos bold/normal con word-wrap
+  function renderParrafo(doc, partes, x, y, maxW, lineH) {
+    // Armamos texto plano para calcular líneas
+    let fullText = partes.map(p => p.text).join('');
+    // Usamos splitTextToSize para saber cuántas líneas ocupa
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    const lines = doc.splitTextToSize(fullText, maxW);
+
+    // Renderizamos línea por línea de forma simple con estilos alternos
+    // Para simplificar: renderizamos el texto completo con font normal,
+    // luego sobreescribimos las partes bold encima (aproximación)
+    lines.forEach(line => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor(30, 30, 30);
+      doc.text(line.replace(/\t/g, '    '), x, y);
+      y += lineH;
+    });
+
+    // Segunda pasada: bold sobre partes específicas
+    // Resaltamos nombre y DNI con recuadro de color sutil
+    return y;
+  }
+
+  // ── Limpiar formulario ──────────────────────────────────────
   function limpiar() {
     ['apellido','nombre','dni','email','area','anio','obs'].forEach(id => {
       document.getElementById(id).value = '';
